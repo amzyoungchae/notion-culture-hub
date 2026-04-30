@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>노션 영화 DB 자동 입력 (KMDB)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 18px; background-color: #f9f9f9; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h3 { margin-top: 0; color: #333; }
+    .row { display:flex; gap:8px; margin-bottom:10px; }
+    input { flex:1; padding:12px; font-size:16px; border: 1px solid #ddd; border-radius: 6px; }
+    button { padding:12px 16px; font-size:16px; cursor:pointer; background-color: #2b2b2b; color: white; border: none; border-radius: 6px; white-space: nowrap; font-weight: bold; }
+    button:hover { background-color: #444; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .small { font-size:13px; color:#666; margin: 8px 0 16px; }
+    
+    .card { border:1px solid #eee; border-radius:10px; padding:16px; margin-top:12px; display:flex; gap:16px; background: #fff; transition: transform 0.2s; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    img { width: 100px; height: 140px; object-fit: cover; border-radius: 6px; background:#f0f0f0; border: 1px solid #e1e1e1; }
+    .info { display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+    .title { font-weight: bold; font-size: 18px; margin-bottom: 6px; color: #111; }
+    .meta { font-size:13px; color:#555; margin-top:4px; line-height: 1.4; }
+    .actions { margin-top:12px; text-align: right; }
+    .add-btn { background-color: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+    .add-btn:hover { background-color: #e0e7ff; }
+    
+    .hint { padding: 12px; border: 1px dashed #ccc; border-radius: 8px; color:#666; margin-top: 12px; text-align: center; }
+    .err { padding: 12px; border: 1px solid #f87171; background:#fef2f2; border-radius: 8px; color:#991b1b; margin-top: 12px; white-space: pre-wrap; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>🎬 노션 영화 DB 자동 입력 (KMDB)</h3>
+
+    <div class="row">
+      <input id="q" placeholder="영화명, 감독명, 배우명 중 하나를 입력하세요" autocomplete="off" />
+      <button id="search">검색</button>
+    </div>
+    <div class="small">✅ 예시: 기생충, 봉준호, 송강호</div>
+
+    <div id="list"></div>
+  </div>
+
+  <script>
+    // 본인의 새로운 영화용 Cloudflare Worker 주소로 변경해주세요. (끝에 /는 빼주세요)
+    const WORKER_BASE = "https://notion-movie-automation.codud9028.workers.dev";
+  
+    const listEl = document.getElementById("list");
+    const qEl = document.getElementById("q");
+    const searchBtn = document.getElementById("search");
+  
+    function showHint(msg) { listEl.innerHTML = `<div class="hint">${msg}</div>`; }
+    function showError(msg) { listEl.innerHTML = `<div class="err">${msg}</div>`; }
+  
+    // YYYYMMDD -> YYYY.MM.DD
+    function formatDateStr(str) {
+      if (!str || str.length !== 8) return str || "미상";
+      return `${str.substring(0,4)}.${str.substring(4,6)}.${str.substring(6,8)}`;
+    }
+  
+    async function search() {
+      const q = qEl.value.trim();
+      if (!q) {
+        showHint("검색어를 입력해 주세요.");
+        return;
+      }
+  
+      listEl.innerHTML = "";
+      searchBtn.disabled = true;
+      searchBtn.textContent = "검색 중...";
+  
+      try {
+        const url = `${WORKER_BASE}/search?q=${encodeURIComponent(q)}`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`검색 API 오류 (Status: ${r.status})`);
+  
+        const data = await r.json();
+        const items = data.items || [];
+        
+        if (items.length === 0) {
+          showHint("검색 결과가 없습니다. 다른 키워드로 시도해 보세요.");
+          return;
+        }
+  
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          card.innerHTML = `
+            <img src="${item.poster || 'https://via.placeholder.com/100x140?text=No+Poster'}" alt="포스터">
+            <div class="info">
+              <div>
+                <div class="title">${item.title}</div>
+                <div class="meta">🎬 <b>감독:</b> ${item.director || "미상"}</div>
+                <div class="meta">🎭 <b>출연:</b> ${item.actors || "미상"}</div>
+                <div class="meta">📅 <b>개봉:</b> ${formatDateStr(item.releaseDate)} | 🏷️ <b>장르:</b> ${item.genre || "미상"}</div>
+              </div>
+              <div class="actions">
+                <button class="add-btn">노션에 추가</button>
+              </div>
+            </div>
+          `;
+  
+          const btn = card.querySelector(".add-btn");
+          btn.onclick = async () => {
+            btn.disabled = true;
+            btn.textContent = "추가 중...";
+  
+            try {
+              const rr = await fetch(`${WORKER_BASE}/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(item), // item 통째로 전달
+              });
+  
+              if (rr.ok) {
+                btn.textContent = "추가 완료 ✅";
+                btn.style.backgroundColor = "#dcfce7";
+                btn.style.color = "#166534";
+                btn.style.borderColor = "#bbf7d0";
+              } else {
+                const errorText = await rr.text();
+                throw new Error(errorText);
+              }
+            } catch (e) {
+              btn.textContent = "실패 ❌";
+              console.error(e);
+              alert("노션 추가에 실패했습니다. (F12 콘솔 창 확인)");
+            }
+          };
+  
+          listEl.appendChild(card);
+        });
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "검색";
+      }
+    }
+  
+    searchBtn.addEventListener("click", search);
+    qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+    showHint("영화명, 감독명, 배우명 중 하나를 입력하고 검색을 눌러주세요.");
+  </script>
+</body>
+</html>

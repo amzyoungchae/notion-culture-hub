@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>노션 전시 DB 자동 입력</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 18px; }
+    .row { display:flex; gap:8px; margin-bottom:10px; }
+    input { flex:1; padding:10px; font-size:16px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding:10px 12px; font-size:16px; cursor:pointer; background-color: #f1f1f1; border: 1px solid #ccc; border-radius: 4px; white-space: nowrap; }
+    button:hover { background-color: #e1e1e1; }
+    .small { font-size:12px; color:#666; margin: 8px 0 14px; }
+    .card { border:1px solid #ddd; border-radius:10px; padding:12px; margin-top:10px; display:flex; gap:12px; }
+    img { width: 96px; height: 128px; object-fit: cover; border-radius: 8px; background:#f3f3f3; }
+    .info { display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+    .meta { font-size:13px; color:#555; margin-top:4px; }
+    .actions { margin-top:10px; text-align: right; }
+    .hint { padding: 10px; border: 1px dashed #ccc; border-radius: 10px; color:#666; margin-top: 12px; }
+    .err { padding: 10px; border: 1px solid #f3b4b4; background:#fff3f3; border-radius: 10px; color:#8a1f1f; margin-top: 12px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h3>노션 공연 DB 자동 입력</h3>
+
+  <div class="row">
+    <input id="q" placeholder="공연명(키워드)을 입력하세요" />
+  </div>
+  
+  <div class="row">
+    <input type="date" id="fromDate" />
+    <span style="align-self: center;">~</span>
+    <input type="date" id="toDate" />
+    <button id="search">검색</button>
+  </div>
+
+  <div class="small">✅ 키워드와 기간을 설정하고 검색해 보세요.</div>
+
+  <div id="list"></div>
+
+  <script>
+    // 본인의 Cloudflare Worker 주소로 변경해주세요. (끝에 /는 빼주세요)
+    const WORKER_BASE = "https://notion-performance-automation.codud9028.workers.dev";
+  
+    const listEl = document.getElementById("list");
+    const qEl = document.getElementById("q");
+    const fromEl = document.getElementById("fromDate");
+    const toEl = document.getElementById("toDate");
+    const searchBtn = document.getElementById("search");
+  
+    // 기본 날짜 세팅 (1년 전 ~ 1년 후)
+    const today = new Date();
+    const pastYear = new Date(); pastYear.setFullYear(today.getFullYear() - 1);
+    const nextYear = new Date(); nextYear.setFullYear(today.getFullYear() + 1);
+    
+    fromEl.value = pastYear.toISOString().split('T')[0];
+    toEl.value = nextYear.toISOString().split('T')[0];
+
+    function showHint(msg) { listEl.innerHTML = `<div class="hint">${msg}</div>`; }
+    function showError(msg) { listEl.innerHTML = `<div class="err">${msg}</div>`; }
+  
+    // 날짜 포맷 변환 (예: 20241010 -> 2024.10.10)
+    function formatDateStr(str) {
+      if (!str || str.length !== 8) return str;
+      return `${str.substring(0,4)}.${str.substring(4,6)}.${str.substring(6,8)}`;
+    }
+  
+    async function search() {
+      const q = qEl.value.trim();
+      if (!q) {
+        showHint("검색어를 입력해 주세요.");
+        return;
+      }
+
+      // input type="date"의 값(YYYY-MM-DD)을 API가 요구하는 형식(YYYYMMDD)으로 변환
+      const fromVal = fromEl.value.replace(/-/g, "");
+      const toVal = toEl.value.replace(/-/g, "");
+  
+      listEl.innerHTML = "";
+      searchBtn.disabled = true;
+      searchBtn.textContent = "검색 중...";
+  
+      try {
+        const url = `${WORKER_BASE}/search?q=${encodeURIComponent(q)}&from=${fromVal}&to=${toVal}`;
+  
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`검색 API 오류 (Status: ${r.status})`);
+  
+        const data = await r.json();
+        const items = data.items || [];
+        
+        if (items.length === 0) {
+          showHint("해당 기간 내에 검색 결과가 없습니다. 날짜를 변경해 보세요.");
+          return;
+        }
+  
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          const periodStr = `${formatDateStr(item.startDate)} ~ ${formatDateStr(item.endDate)}`;
+  
+          card.innerHTML = `
+            <img src="${item.imageUrl || ''}" alt="포스터">
+            <div class="info">
+              <div>
+                <div style="font-weight: bold; font-size: 15px;">${item.title || "(공연명 없음)"}</div>
+                <div class="meta">📍 장소: ${item.place || "미상"}</div>
+                <div class="meta">📅 기간: ${periodStr}</div>
+              </div>
+              <div class="actions">
+                <button class="add-btn">노션에 추가</button>
+              </div>
+            </div>
+          `;
+  
+          const btn = card.querySelector(".add-btn");
+          btn.onclick = async () => {
+            btn.disabled = true;
+            btn.textContent = "추가 중...";
+  
+            const payload = {
+              seq: item.seq,
+              title: item.title,
+              place: item.place,
+              period: periodStr,
+              imageUrl: item.imageUrl
+            };
+  
+            try {
+              const rr = await fetch(`${WORKER_BASE}/add`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+  
+              if (rr.ok) {
+                btn.textContent = "추가 완료 ✅";
+              } else {
+                const errorText = await rr.text();
+                throw new Error(errorText);
+              }
+            } catch (e) {
+              btn.textContent = "실패 ❌";
+              console.error(e);
+              alert("노션 추가에 실패했습니다. 콘솔 창의 빨간 에러를 확인해주세요.");
+            }
+          };
+  
+          listEl.appendChild(card);
+        });
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "검색";
+      }
+    }
+  
+    searchBtn.addEventListener("click", search);
+    qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+    showHint("공연명 키워드와 기간을 설정하고 검색을 눌러주세요.");
+  </script>
+</body>
+</html>

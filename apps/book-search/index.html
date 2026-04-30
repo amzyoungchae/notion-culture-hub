@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>노션 도서 DB 자동 입력</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 18px; }
+    .row { display: flex; gap: 8px; margin-bottom: 10px; }
+    input { flex: 1; padding: 10px; font-size: 16px; }
+    button { padding: 10px 12px; font-size: 16px; cursor: pointer; }
+    .small { font-size: 12px; color: #666; margin: 8px 0 14px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 10px; display:flex; gap:12px; }
+    img { width: 64px; height: 90px; object-fit: cover; border-radius: 6px; background:#f3f3f3; }
+    .meta { font-size: 13px; color:#555; margin-top:4px; }
+    .actions { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h3>노션 도서 DB 자동 입력</h3>
+
+  <div class="row">
+    <input id="q" placeholder="책 제목 또는 작가를 입력하세요" />
+    <button id="search">검색</button>
+  </div>
+
+  <div class="small">
+    ✅ 입력 가능 항목: <b>책 제목, 작가, isbn</b><br/>
+  </div>
+
+  <div id="list"></div>
+
+  <script>
+    const WORKER_BASE = "https://crimson-pond-fdb5.codud9028.workers.dev";
+    const TITLE_PROP = "제목";
+
+    const listEl = document.getElementById("list");
+    const qEl = document.getElementById("q");
+
+    function looksLikeIsbn(raw) {
+      const s = String(raw || "").replace(/[-\s]/g, "");
+      // ISBN-13(13자리 숫자) 또는 ISBN-10(10자리, 마지막 X 가능)
+      return /^\d{13}$/.test(s) || /^\d{9}[\dXx]$/.test(s);
+    }
+
+    async function search() {
+      const q = qEl.value
+        .replace(/\u00A0/g, " ")
+        .replace(/\u2009/g, " ")
+        .replace(/\u202F/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      listEl.innerHTML = "";
+      if (!q) return;
+
+      let url;
+      if (looksLikeIsbn(q)) {
+        const isbn = q.replace(/[-\s]/g, "");
+        url = `${WORKER_BASE}/search?isbn13=${encodeURIComponent(isbn)}`;
+      } else {
+        url = `${WORKER_BASE}/search?keyword=${encodeURIComponent(q)}`;
+      }
+
+      const r = await fetch(url);
+      const data = await r.json();
+
+      (data.items || []).forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const img = document.createElement("img");
+        img.src = item.coverUrl || "";
+        card.appendChild(img);
+
+        const info = document.createElement("div");
+        info.innerHTML = `
+          <div><b>${item.title || "(제목 없음)"}</b></div>
+          <div class="meta">${item.author || ""} · ${item.publisher || ""}</div>
+          <div class="meta">KDC: ${item.kdc || ""}</div>
+          <div class="meta">ISBN13: ${item.isbn13 || ""}</div>
+          <div class="meta">표지URL: ${item.coverUrl ? "있음" : "없음"}</div>
+        `;
+
+        const btn = document.createElement("button");
+        btn.textContent = "노션에 추가";
+
+        btn.onclick = async () => {
+          btn.disabled = true;
+          btn.textContent = "추가 중...";
+
+          // ✅ isbn13을 확실히 포함해서 Worker가 8번 API 호출 가능하게
+          const payload = {
+            ...item,
+            isbn13: item.isbn13 || "",
+            __titleProp: TITLE_PROP
+          };
+
+          const rr = await fetch(`${WORKER_BASE}/add`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (rr.ok) {
+            btn.textContent = "추가 완료 ✅";
+          } else {
+            const t = await rr.text();
+            btn.textContent = "실패 ❌";
+            console.error(t);
+            alert("추가 실패! 콘솔(F12)에서 에러를 확인해 주세요.");
+          }
+        };
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(btn);
+
+        info.appendChild(actions);
+        card.appendChild(info);
+        listEl.appendChild(card);
+      });
+    }
+
+    document.getElementById("search").addEventListener("click", search);
+    qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+  </script>
+</body>
+</html>

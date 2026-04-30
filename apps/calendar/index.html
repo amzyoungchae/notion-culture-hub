@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>개인의 문화생활 캘린더</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+  </head>
+  <body>
+    <div class="page">
+        <header class="topbar">
+            <div class="title-wrap">
+            <p class="subtitle">영화, 도서, 공연 전시, 방탈출 기록을 한 번에 보기</p>
+            </div>
+        </header>
+
+        <div class="top-controls-row">
+          <div id="sourceFilterBar" class="source-filter-bar">
+            <button class="source-filter-btn active movie" data-source="영화">영화: 0건</button>
+            <button class="source-filter-btn active book" data-source="도서">도서: 0건</button>
+            <button class="source-filter-btn active performance" data-source="공연">공연: 0건</button>
+            <button class="source-filter-btn active exhibition" data-source="전시">전시: 0건</button>
+            <button class="source-filter-btn active escape" data-source="방탈출">방탈출: 0건</button>
+          </div>
+
+          <div class="year-month-controls">
+            <select id="yearSelect" class="picker"></select>
+            <select id="monthSelect" class="picker"></select>
+            <button id="goToMonthBtn" class="picker-btn">이동</button>
+          </div>
+
+          <div id="calendarToolbarExtras" class="calendar-toolbar-extras hidden-toolbar-extras">
+            <button id="reloadBtn" class="picker-btn secondary-btn">새로고침</button>
+          </div>
+        </div>
+
+        <section class="status-wrap">
+            <div id="status">불러오는 중...</div>
+        </section>
+
+        <div class="calendar-main-layout">
+          <div class="calendar-left">
+            <div class="calendar-fixed-wrap">
+              <div id="calendar"></div>
+            </div>
+          </div>
+
+          <aside id="detailPanel" class="detail-panel detail-panel-side">
+            <div id="detailContent">
+              <div class="detail-empty-state">
+                <h3>항목을 선택해 주세요</h3>
+                <p>캘린더의 영화, 도서, 공연, 전시, 방탈출 기록을 클릭하면 상세 정보가 여기 표시됩니다.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-panel">
+        <button id="closeModal" class="close-btn">×</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+
+    <script>
+      window.APP_CONFIG = {
+        API_BASE: "https://notion-unified-calendar-api.codud9028.workers.dev",
+      };
+    </script>
+    <script src="./app.js"></script>
+  </body>
+</html>
