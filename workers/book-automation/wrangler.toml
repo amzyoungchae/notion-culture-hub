@@ -1,4 +1,4 @@
-name = "notion-book-automation"
+name = "notion-book-automation-new"
 main = "src/index.js"
 compatibility_date = "2026-04-30"
 workers_dev = true
