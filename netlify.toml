@@ -1,5 +1,10 @@
 [build]
-  publish = "."
+  publish = "apps"
+
+[[redirects]]
+  from = "/"
+  to = "/calendar/"
+  status = 302
 
 [[headers]]
   for = "/*"
