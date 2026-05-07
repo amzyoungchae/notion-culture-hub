@@ -18,7 +18,7 @@ Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 �
 
 프론트엔드는 정적 HTML/CSS/JavaScript로 구성되어 Netlify에 배포하고, API와 Notion 저장 로직은 Cloudflare Workers에서 실행합니다.
 
-![통합 캘린더 데모](assets/1. notion-link-origin-page.gif)
+![통합 캘린더 데모](./assets/1.%20notion-link-origin-page.gif)
 
 ## 주요 기능
 
