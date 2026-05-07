@@ -26,14 +26,22 @@ export default {
         const response = await fetch(apiUrl);
         const data = await response.json();
         
+        function cleanKmdbText(value) {
+          return String(value || "")
+            .replace(/!HS/g, "")
+            .replace(/!HE/g, "")
+            .replace(/<\/?[^>]+>/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+
         const items = [];
         
         // 검색 결과가 있는 경우
         if (data.Data && data.Data[0] && data.Data[0].Result) {
           data.Data[0].Result.forEach(movie => {
             // 1. 영화 제목 정제 (!HS, !HE 태그 제거)
-            let rawTitle = movie.title || "";
-            const title = rawTitle.replace(/!HS/g, "").replace(/!HE/g, "").trim();
+            const title = cleanKmdbText(movie.title);
 
             // 2. 포스터 URL (여러 개일 경우 | 로 구분됨. 첫 번째 것만 사용)
             let poster = "";
@@ -44,23 +52,31 @@ export default {
             // 3. 감독명 추출
             let director = "";
             if (movie.directors && movie.directors.director && movie.directors.director.length > 0) {
-              director = movie.directors.director[0].directorNm;
+              director = cleanKmdbText(movie.directors.director[0].directorNm);
             }
 
             // 4. 배우명 추출 (최대 5명까지만 콤마로 연결)
             let actors = "";
             if (movie.actors && movie.actors.actor) {
-              actors = movie.actors.actor.slice(0, 5).map(a => a.actorNm).filter(Boolean).join(", ");
+              actors = movie.actors.actor
+                .slice(0, 5)
+                .map(a => cleanKmdbText(a.actorNm))
+                .filter(Boolean)
+                .join(", ");
             }
 
             // 5. 기타 정보 추출
             const releaseDate = movie.repRlsDate || ""; // 개봉일 (YYYYMMDD)
             const nation = movie.nation || "";
-            const plot = (movie.plots && movie.plots.plot && movie.plots.plot.length > 0) ? movie.plots.plot[0].plotText : "";
             const rating = movie.rating || ""; // 관람등급
-            const genre = movie.genre || "";
             const kmdbUrl = movie.kmdbUrl || "";
-            const keywords = movie.keywords || "";
+            const plot = cleanKmdbText(
+              movie.plots && movie.plots.plot && movie.plots.plot.length > 0
+                ? movie.plots.plot[0].plotText
+                : ""
+            );
+            const genre = cleanKmdbText(movie.genre);
+            const keywords = cleanKmdbText(movie.keywords);
 
             items.push({
               title, director, actors, releaseDate, nation, plot, rating, genre, kmdbUrl, keywords, poster
