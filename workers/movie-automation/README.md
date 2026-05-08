@@ -6,7 +6,7 @@ KMDB 영화 검색 API를 사용해 영화 정보를 검색하고, 선택한 영
 
 ## 동작 화면
 
-![영화 DB 자동 입력 데모](./assets/movie-search-demo.gif)
+![영화 DB 자동 입력 데모](../../assets/2.%20movie_db_save.gif)
 
 ## 주요 기능
 

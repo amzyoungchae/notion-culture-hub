@@ -6,7 +6,7 @@
 
 ## 동작 화면
 
-![공연 DB 자동 입력 데모](./assets/performance-search-demo.gif)
+![공연 DB 자동 입력 데모](../../assets/3.%20performance_db_save.gif)
 
 ## 주요 기능
 

@@ -6,7 +6,7 @@
 
 ## 동작 화면
 
-![전시 DB 자동 입력 데모](./assets/exhibition-search-demo.gif)
+![전시 DB 자동 입력 데모](../../assets/4.%20exhibition_db_save.gif)
 
 ## 주요 기능
 

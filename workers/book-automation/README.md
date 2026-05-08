@@ -6,7 +6,7 @@
 
 ## 동작 화면
 
-![도서 DB 자동 입력 데모](./assets/book-search-demo.gif)
+![도서 DB 자동 입력 데모](../../assets/5.%20book_db_save.gif)
 
 ## 주요 기능
 
