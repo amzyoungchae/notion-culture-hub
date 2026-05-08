@@ -22,10 +22,10 @@ Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 �
 
 ## 주요 기능
 
-- 영화 검색 및 Notion 영화 데이터베이스 저장
-- 도서 검색 및 Notion 도서 데이터베이스 저장
-- 공연 검색 및 Notion 공연 데이터베이스 저장
-- 전시 검색 및 Notion 전시 데이터베이스 저장
+- [영화 검색 및 Notion 영화 데이터베이스 저장](./workers/movie-automation/README.md)
+- [도서 검색 및 Notion 도서 데이터베이스 저장](./workers/book-automation/README.md)
+- [공연 검색 및 Notion 공연 데이터베이스 저장](./workers/performance-automation/README.md)
+- [전시 검색 및 Notion 전시 데이터베이스 저장](./workers/exhibition-automation/README.md)
 - 영화, 도서, 공연, 전시, 방탈출 기록 통합 캘린더 조회
 - 월별 캘린더 보기, 이미지 보기, 목록 보기 지원
 - 카테고리별 필터링
