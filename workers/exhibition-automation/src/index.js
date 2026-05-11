@@ -1,7 +1,7 @@
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, X-Admin-Token",
 };
 
 export default {
@@ -57,6 +57,14 @@ export default {
 
     // 2. 노션 추가 API 라우트
     if (url.pathname === "/add" && request.method === "POST") {
+      const adminToken = request.headers.get("X-Admin-Token");
+
+      if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+        });
+      }
       try {
         const data = await request.json();
         const { seq, title, place, period, imageUrl: fallbackImg } = data;

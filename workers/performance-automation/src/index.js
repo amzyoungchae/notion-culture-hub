@@ -37,7 +37,7 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, X-Admin-Token",
     };
 
     if (request.method === "OPTIONS") {
@@ -76,6 +76,14 @@ export default {
 
       // 2. 노션 DB 추가 엔드포인트
       if (path === "/add" && request.method === "POST") {
+        const adminToken = request.headers.get("X-Admin-Token");
+
+        if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
         const body = await request.json();
         const mt20id = body.mt20id;
 

@@ -59,6 +59,18 @@
 
     function showHint(msg) { listEl.innerHTML = `<div class="hint">${msg}</div>`; }
     function showError(msg) { listEl.innerHTML = `<div class="err">${msg}</div>`; }
+    function getAdminToken() {
+      let token = sessionStorage.getItem("ADMIN_TOKEN");
+
+      if (!token) {
+        token = prompt("관리자 토큰을 입력하세요.");
+        if (token) {
+          sessionStorage.setItem("ADMIN_TOKEN", token);
+        }
+      }
+
+      return token;
+    }
   
     async function search() {
       const q = qEl.value.trim();
@@ -118,9 +130,18 @@
   
             try {
               // 목록에 없는 상세 정보(출연진, 가격) 조회를 위해 mt20id(공연 ID) 전달
+              const token = getAdminToken();
+
+              if (!token) {
+
+                throw new Error("관리자 토큰이 필요합니다.");
+
+              }
+
+
               const rr = await fetch(`${WORKER_BASE}/add`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-Admin-Token": token },
                 body: JSON.stringify({ mt20id: item.mt20id }),
               });
   

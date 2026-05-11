@@ -8,7 +8,7 @@ async function handle(req) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-Admin-Token",
   };
 
   // 1) Preflight
@@ -104,6 +104,14 @@ async function handle(req) {
     // 4) 추가: /add (POST) - 노션 API 연동 + usageAnalysisList(8)
     // =======================
     if (url.pathname === "/add" && req.method === "POST") {
+    const adminToken = req.headers.get("X-Admin-Token");
+
+    if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
       const body = await req.json();
 
       if (!NOTION_DB_ID || !NOTION_TOKEN) {
