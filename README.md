@@ -285,3 +285,11 @@ npx wrangler deploy
 cd workers/performance-automation
 npx wrangler deploy
 ```
+
+## 보안
+
+`POST /add` API는 관리자 토큰 인증이 필요합니다.
+
+Cloudflare Worker Secret에 `ADMIN_TOKEN`을 등록하고, 프론트엔드는 `노션에 추가` 요청 시 `X-Admin-Token` 헤더로 토큰을 전송합니다.
+
+토큰이 없거나 일치하지 않으면 Worker는 `401 Unauthorized`를 반환하며 Notion 데이터베이스에 항목을 추가하지 않습니다.
