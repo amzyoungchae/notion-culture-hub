@@ -106,7 +106,7 @@ async function handle(req) {
     if (url.pathname === "/add" && req.method === "POST") {
     const adminToken = req.headers.get("X-Admin-Token");
 
-    if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+    if (typeof ADMIN_TOKEN === "undefined" || !ADMIN_TOKEN || adminToken !== ADMIN_TOKEN) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
