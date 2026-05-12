@@ -57,7 +57,6 @@ async function init() {
   });
 
   calendar.render();
-  attachToolbarExtras();
   bindEvents();
 
   updateViewButtons();
