@@ -149,7 +149,7 @@ ADMIN_TOKEN=
 | `NOTION_API_KEY` | Notion Integration API Key |
 | `CULTURE_API_KEY` | 전시 정보를 조회하는 문화 API Key |
 | `NOTION_DB_ID` | 전시 정보를 저장할 Notion 데이터베이스 ID |
-|`ADMIN_TOKEN`|Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
+| `ADMIN_TOKEN` |Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰 |
 
 실제 값은 GitHub에 커밋하지 않습니다.
 

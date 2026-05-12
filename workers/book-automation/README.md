@@ -152,7 +152,7 @@ ADMIN_TOKEN=
 | `DATA4LIB_KEY` | 도서 API Key |
 | `NOTION_TOKEN` | Notion Integration Token |
 | `NOTION_DB_ID` | 도서 정보를 저장할 Notion 데이터베이스 ID |
-| `ADMIN_TOKEN`| Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
+| `ADMIN_TOKEN` | Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰 |
 
 실제 값은 GitHub에 커밋하지 않습니다.
 

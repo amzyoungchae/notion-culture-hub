@@ -150,6 +150,7 @@ Cloudflare Worker의 Variables and Secrets에 아래 값을 등록해야 합니�
 NOTION_MOVIE_DB_ID=
 NOTION_API_KEY=
 KMDB_API_KEY=
+ADMIN_TOKEN=
 ```
 
 | 변수 | 설명 |
@@ -157,6 +158,7 @@ KMDB_API_KEY=
 | `NOTION_MOVIE_DB_ID` | 영화 정보를 저장할 Notion 데이터베이스 ID |
 | `NOTION_API_KEY` | Notion Integration API Key |
 | `KMDB_API_KEY` | KMDB API Service Key |
+| `ADMIN_TOKEN` | Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰 |
 
 실제 값은 GitHub에 커밋하지 않습니다.
 
