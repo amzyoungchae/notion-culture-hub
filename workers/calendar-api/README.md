@@ -66,7 +66,7 @@ Worker URL은 `index.html`의 `window.APP_CONFIG.API_BASE` 값으로 설정합�
 
 ```js
 window.APP_CONFIG = {
-  API_BASE: "https://notion-calendar-api-new.codud9028.workers.dev",
+  API_BASE: https://your-worker-name.your-subdomain.workers.dev,
 };
 ```
 
@@ -237,14 +237,14 @@ workers_dev = true
 배포 후 Worker URL:
 
 ```text
-https://notion-calendar-api-new.codud9028.workers.dev
+https://your-worker-name.your-subdomain.workers.dev
 ```
 
 프론트엔드의 API URL도 이 Worker URL과 일치해야 합니다.
 
 ```js
 window.APP_CONFIG = {
-  API_BASE: "https://notion-calendar-api-new.codud9028.workers.dev",
+  API_BASE: "https://your-worker-name.your-subdomain.workers.dev",
 };
 ```
 

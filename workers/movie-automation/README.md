@@ -50,7 +50,7 @@ workers/movie-automation/
 Worker URL은 `WORKER_BASE` 값으로 설정합니다.
 
 ```js
-const WORKER_BASE = "https://notion-movie-automation-new.codud9028.workers.dev";
+const WORKER_BASE = "https://your-worker-name.your-subdomain.workers.dev";
 ```
 
 ### Worker
@@ -182,7 +182,7 @@ workers_dev = true
 배포 후 Worker URL:
 
 ```text
-https://notion-movie-automation-new.codud9028.workers.dev
+https://your-worker-name.your-subdomain.workers.dev
 ```
 
 ## 동작 흐름

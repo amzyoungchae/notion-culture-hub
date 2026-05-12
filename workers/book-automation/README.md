@@ -14,7 +14,7 @@
 - 도서 API를 통한 책 상세 정보 조회
 - 책 표지, 제목, 저자, 출판사, KDC, ISBN 정보 표시
 - 검색 결과에서 선택한 도서를 Notion 데이터베이스에 추가
-- Notion 페이지에 제목, 저자, 출판사, ISBN, KDC, 책 표지 URL 등 저장
+- Notion 페이지에 제목, 저자, 출판사, KDC, 책 표지, 주제분야, 줄거리, 키워드 등 저장
 - ISBN 입력 시 ISBN 기반 검색 요청 처리
 
 ## 관련 경로
@@ -51,7 +51,7 @@ workers/book-automation/
 Worker URL은 `WORKER_BASE` 값으로 설정합니다.
 
 ```js
-const WORKER_BASE = "https://notion-book-automation-new.codud9028.workers.dev";
+const WORKER_BASE = "https://your-worker-name.your-subdomain.workers.dev";
 ```
 
 ### Worker
@@ -152,7 +152,7 @@ ADMIN_TOKEN=
 | `DATA4LIB_KEY` | 도서 API Key |
 | `NOTION_TOKEN` | Notion Integration Token |
 | `NOTION_DB_ID` | 도서 정보를 저장할 Notion 데이터베이스 ID |
-|`ADMIN_TOKEN`|Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
+| `ADMIN_TOKEN`| Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
 
 실제 값은 GitHub에 커밋하지 않습니다.
 
@@ -178,7 +178,7 @@ workers_dev = true
 배포 후 Worker URL:
 
 ```text
-https://notion-book-automation-new.codud9028.workers.dev
+https://your-worker-name.your-subdomain.workers.dev
 ```
 
 ## 동작 흐름
