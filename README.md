@@ -18,18 +18,39 @@ Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 �
 
 프론트엔드는 정적 HTML/CSS/JavaScript로 구성되어 Netlify에 배포하고, API와 Notion 저장 로직은 Cloudflare Workers에서 실행합니다.
 
-![통합 캘린더 데모](./assets/1.%20notion-link-origin-page.gif)
+## 기능별 문서
+
+각 기능의 상세 설명은 아래 문서에서 확인할 수 있습니다.
+
+| 기능 | 설명 | 문서 |
+| --- | --- | --- |
+| 통합 캘린더 | 영화, 도서, 공연, 전시, 방탈출 기록을 한 화면에서 조회 | [Calendar README](./workers/calendar-api/README.md) |
+| 영화 DB 자동 입력 | KMDB API로 영화 정보를 검색하고 Notion 영화 DB에 저장 | [Movie README](./workers/movie-automation/README.md) |
+| 도서 DB 자동 입력 | 도서관 정보나루 API로 책 정보를 검색하고 Notion 도서 DB에 저장 | [Book README](./workers/book-automation/README.md) |
+| 공연 DB 자동 입력 | KOPIS API로 공연 정보를 검색하고 Notion 공연 DB에 저장 | [Performance README](./workers/performance-automation/README.md) |
+| 전시 DB 자동 입력 | 한눈에보는문화정보조회서비스 API로 전시 정보를 검색하고 Notion 전시 DB에 저장 | [Exhibition README](./workers/exhibition-automation/README.md) |
+
 
 ## 주요 기능
 
-- [영화 검색 및 Notion 영화 데이터베이스 저장](./workers/movie-automation/README.md)
-- [도서 검색 및 Notion 도서 데이터베이스 저장](./workers/book-automation/README.md)
-- [공연 검색 및 Notion 공연 데이터베이스 저장](./workers/performance-automation/README.md)
-- [전시 검색 및 Notion 전시 데이터베이스 저장](./workers/exhibition-automation/README.md)
-- 영화, 도서, 공연, 전시, 방탈출 기록 통합 캘린더 조회
+### 통합 캘린더
+
+- 영화, 도서, 공연, 전시, 방탈출 기록 통합 조회
 - 월별 캘린더 보기, 이미지 보기, 목록 보기 지원
 - 카테고리별 필터링
 - 캘린더 항목 클릭 시 Notion 원본 페이지로 이동
+
+![통합 캘린더 데모](./assets/1.%20notion-link-origin-page.gif)
+
+### DB 자동 입력
+
+- 영화 정보를 검색하고 Notion 영화 데이터베이스에 저장
+- 도서 정보를 검색하고 Notion 도서 데이터베이스에 저장
+- 공연 정보를 검색하고 Notion 공연 데이터베이스에 저장
+- 전시 정보를 검색하고 Notion 전시 데이터베이스에 저장
+- 추가 요청은 관리자 토큰 인증을 통해 보호
+
+![통합 캘린더 데모](/assets/2.%20movie_db_save.gif)
 
 ## 프로젝트 구조
 
@@ -199,6 +220,7 @@ NOTION_VERSION=
 DATA4LIB_KEY=
 NOTION_TOKEN=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 ### Movie Automation
@@ -207,6 +229,7 @@ NOTION_DB_ID=
 NOTION_MOVIE_DB_ID=
 NOTION_API_KEY=
 KMDB_API_KEY=
+ADMIN_TOKEN=
 ```
 
 ### Exhibition Automation
@@ -215,6 +238,7 @@ KMDB_API_KEY=
 NOTION_API_KEY=
 CULTURE_API_KEY=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 ### Performance Automation
@@ -223,6 +247,7 @@ NOTION_DB_ID=
 CULTURE_API_KEY=
 NOTION_API_KEY=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 ## 배포

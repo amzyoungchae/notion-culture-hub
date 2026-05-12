@@ -6,7 +6,7 @@ Notion에 나누어 저장된 영화, 도서, 공연, 전시, 방탈출 기록�
 
 ## 동작 화면
 
-![통합 캘린더 데모](./assets/calendar-demo.gif)
+![통합 캘린더 데모](../../assets/1.%20notion-link-origin-page.gif)
 
 ## 주요 기능
 

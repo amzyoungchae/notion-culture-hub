@@ -124,10 +124,12 @@ Worker는 전시 정보를 Notion 전시 데이터베이스에 저장합니다.
 | Notion 속성 | 저장 내용 |
 | --- | --- |
 | `전시명` | 전시 제목 |
-| `장소` | 전시장 또는 개최 장소 |
-| `기간` 또는 `감상일` | 전시 기간 또는 감상일 |
+| `전시 장소` | 전시가 개최되는 장소 |
+| `전시 기간` | 전시가 개최되는 기간 |
+| `전시 가격` | 전시 가격 |
+| `분류명` | 전시 카테고리 분류 |
+| `관람 URL` | 전시 상세 URL, 있는 경우 |
 | `이미지` | 전시 이미지 URL |
-| `관련URL` | 전시 상세 URL, 있는 경우 |
 
 사용 중인 Notion 데이터베이스의 실제 속성명에 따라 Worker 코드에서 매핑됩니다.
 
@@ -139,6 +141,7 @@ Cloudflare Worker의 Variables and Secrets에 아래 값을 등록해야 합니�
 NOTION_API_KEY=
 CULTURE_API_KEY=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 | 변수 | 설명 |
@@ -146,6 +149,7 @@ NOTION_DB_ID=
 | `NOTION_API_KEY` | Notion Integration API Key |
 | `CULTURE_API_KEY` | 전시 정보를 조회하는 문화 API Key |
 | `NOTION_DB_ID` | 전시 정보를 저장할 Notion 데이터베이스 ID |
+|`ADMIN_TOKEN`|Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
 
 실제 값은 GitHub에 커밋하지 않습니다.
 

@@ -126,11 +126,13 @@ Worker는 도서 정보를 Notion 도서 데이터베이스에 저장합니다.
 | Notion 속성 | 저장 내용 |
 | --- | --- |
 | `제목` | 책 제목 |
-| `작가` 또는 `저자` | 저자명 |
+| `작가` | 저자명 |
 | `출판사` | 출판사 |
-| `ISBN13` | ISBN13 |
-| `KDC` | 한국십진분류 |
+| `kdc` | 한국십진분류 번호 |
 | `책표지` | 책 표지 이미지 URL |
+| `주제분야` | 도서 주제 분야 |
+| `줄거리` | 도서 설명 |
+| `키워드` | 도서 관련 키워드 |
 
 사용 중인 Notion 데이터베이스의 실제 속성명에 따라 Worker 코드에서 매핑됩니다.
 
@@ -142,6 +144,7 @@ Cloudflare Worker의 Variables and Secrets에 아래 값을 등록해야 합니�
 DATA4LIB_KEY=
 NOTION_TOKEN=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 | 변수 | 설명 |
@@ -149,6 +152,7 @@ NOTION_DB_ID=
 | `DATA4LIB_KEY` | 도서 API Key |
 | `NOTION_TOKEN` | Notion Integration Token |
 | `NOTION_DB_ID` | 도서 정보를 저장할 Notion 데이터베이스 ID |
+|`ADMIN_TOKEN`|Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
 
 실제 값은 GitHub에 커밋하지 않습니다.
 

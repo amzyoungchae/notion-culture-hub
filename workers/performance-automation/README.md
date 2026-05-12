@@ -124,13 +124,12 @@ Worker는 공연 정보를 Notion 공연 데이터베이스에 저장합니다.
 | Notion 속성 | 저장 내용 |
 | --- | --- |
 | `공연명` | 공연 제목 |
-| `장소` | 공연장 |
-| `기간` 또는 `감상일` | 공연 기간 또는 감상일 |
-| `장르` | 공연 장르 |
+| `공연 장르` | 연극, 서양음악(클래식), 뮤지컬, 대중음악, 복합, 서커스/마술 |
+| `공연 장소` | 공연장 명|
+| `공연 기간` | 공연 기간|
+| `공연 가격` | 티켓 가격 정보, 있는 경우 |
+| `공연 출연진` | 출연진 정보, 있는 경우 |
 | `이미지` | 포스터 이미지 URL |
-| `출연진` | 출연진 정보, 있는 경우 |
-| `가격` | 티켓 가격 정보, 있는 경우 |
-| `관련URL` | 공연 상세 URL, 있는 경우 |
 
 사용 중인 Notion 데이터베이스의 실제 속성명에 따라 Worker 코드에서 매핑됩니다.
 
@@ -142,6 +141,7 @@ Cloudflare Worker의 Variables and Secrets에 아래 값을 등록해야 합니�
 CULTURE_API_KEY=
 NOTION_API_KEY=
 NOTION_DB_ID=
+ADMIN_TOKEN=
 ```
 
 | 변수 | 설명 |
@@ -149,6 +149,7 @@ NOTION_DB_ID=
 | `CULTURE_API_KEY` | 공연 정보를 조회하는 문화 API Key |
 | `NOTION_API_KEY` | Notion Integration API Key |
 | `NOTION_DB_ID` | 공연 정보를 저장할 Notion 데이터베이스 ID |
+|`ADMIN_TOKEN`|Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰|
 
 실제 값은 GitHub에 커밋하지 않습니다.
 
