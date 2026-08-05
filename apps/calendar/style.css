@@ -486,8 +486,9 @@
 .image-day-card-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  background: #f3f4f6;
 }
 
 .image-day-card-placeholder {
@@ -521,8 +522,8 @@
 
 .fc .fc-daygrid-day-frame {
   position: relative;
-  min-height: 160px;
-  height: 160px;
+  min-height: 220px;
+  height: 220px;
 }
 
 .calendar-main-layout {
