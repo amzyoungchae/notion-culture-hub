@@ -47,6 +47,8 @@ export default {
             let poster = "";
             if (movie.posters) {
               poster = movie.posters.split("|")[0];
+              // HTTPS 페이지에서 HTTP 포스터를 직접 불러올 때 발생하는 Mixed Content 경고 방지
+              poster = poster.replace(/^http:\/\//i, "https://");
             }
 
             // 3. 감독명 추출
@@ -98,7 +100,14 @@ export default {
     if (url.pathname === "/add" && request.method === "POST") {
       const adminToken = request.headers.get("X-Admin-Token");
 
-      if (!env.ADMIN_TOKEN || adminToken !== env.ADMIN_TOKEN) {
+      if (!env.ADMIN_TOKEN) {
+        return new Response(JSON.stringify({ error: "ADMIN_TOKEN is not configured" }), {
+          status: 503,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+        });
+      }
+
+      if (adminToken !== env.ADMIN_TOKEN) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { "Content-Type": "application/json", ...CORS_HEADERS },

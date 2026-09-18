@@ -45,6 +45,7 @@
   <script>
     // 본인의 새로운 영화용 Cloudflare Worker 주소로 변경해주세요. (끝에 /는 빼주세요)
     const WORKER_BASE = "https://notion-movie-automation-new.codud9028.workers.dev";
+    const ADMIN_TOKEN_STORAGE_KEY = "MOVIE_ADMIN_TOKEN";
   
     const listEl = document.getElementById("list");
     const qEl = document.getElementById("q");
@@ -53,16 +54,21 @@
     function showHint(msg) { listEl.innerHTML = `<div class="hint">${msg}</div>`; }
     function showError(msg) { listEl.innerHTML = `<div class="err">${msg}</div>`; }
     function getAdminToken() {
-      let token = sessionStorage.getItem("ADMIN_TOKEN");
+      let token = sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
 
       if (!token) {
         token = prompt("관리자 토큰을 입력하세요.");
+        token = token?.trim();
         if (token) {
-          sessionStorage.setItem("ADMIN_TOKEN", token);
+          sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
         }
       }
 
       return token;
+    }
+
+    function forgetAdminToken() {
+      sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
     }
   
     // YYYYMMDD -> YYYY.MM.DD
@@ -96,6 +102,10 @@
         }
   
         items.forEach((item) => {
+          if (item.poster) {
+            item.poster = item.poster.replace(/^http:\/\//i, "https://");
+          }
+
           const card = document.createElement("div");
           card.className = "card";
           
@@ -142,12 +152,20 @@
                 btn.style.borderColor = "#bbf7d0";
               } else {
                 const errorText = await rr.text();
-                throw new Error(errorText);
+                if (rr.status === 401) {
+                  forgetAdminToken();
+                  throw new Error("관리자 토큰이 올바르지 않습니다. 다시 눌러 토큰을 재입력해 주세요.");
+                }
+                if (rr.status === 503) {
+                  throw new Error("영화 Worker에 ADMIN_TOKEN이 설정되지 않았습니다. Cloudflare 설정을 확인해 주세요.");
+                }
+                throw new Error(errorText || `노션 추가 API 오류 (Status: ${rr.status})`);
               }
             } catch (e) {
-              btn.textContent = "실패 ❌";
+              btn.disabled = false;
+              btn.textContent = "다시 시도";
               console.error(e);
-              alert("노션 추가에 실패했습니다. (F12 콘솔 창 확인)");
+              alert(`노션 추가에 실패했습니다.\n\n${e.message}`);
             }
           };
   
