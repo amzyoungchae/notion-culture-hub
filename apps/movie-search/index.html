@@ -13,6 +13,8 @@
     button { padding:12px 16px; font-size:16px; cursor:pointer; background-color: #2b2b2b; color: white; border: none; border-radius: 6px; white-space: nowrap; font-weight: bold; }
     button:hover { background-color: #444; }
     button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .secondary-btn { background: white; color: #475569; border: 1px solid #cbd5e1; }
+    .secondary-btn:hover { background: #f1f5f9; }
     .small { font-size:13px; color:#666; margin: 8px 0 16px; }
     
     .card { border:1px solid #eee; border-radius:10px; padding:16px; margin-top:12px; display:flex; gap:16px; background: #fff; transition: transform 0.2s; }
@@ -24,6 +26,16 @@
     .actions { margin-top:12px; text-align: right; }
     .add-btn { background-color: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
     .add-btn:hover { background-color: #e0e7ff; }
+    .auth-box { padding: 14px; margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 10px; background: #f8fafc; }
+    .auth-title { margin-bottom: 10px; font-weight: 700; color: #334155; }
+    .auth-box .row { margin-bottom: 8px; flex-wrap: wrap; }
+    .auth-box input[type="password"] { min-width: 220px; }
+    .remember { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: #475569; cursor: pointer; }
+    .remember input { flex: none; width: auto; margin: 0; }
+    .auth-status { margin: 8px 0 0; min-height: 18px; }
+    .auth-status.ok { color: #166534; }
+    .auth-status.error { color: #991b1b; }
+    .card-status { margin-top: 8px; color: #991b1b; font-size: 13px; text-align: right; }
     
     .hint { padding: 12px; border: 1px dashed #ccc; border-radius: 8px; color:#666; margin-top: 12px; text-align: center; }
     .err { padding: 12px; border: 1px solid #f87171; background:#fef2f2; border-radius: 8px; color:#991b1b; margin-top: 12px; white-space: pre-wrap; font-size: 14px; }
@@ -39,6 +51,20 @@
     </div>
     <div class="small">✅ 예시: 기생충, 봉준호, 송강호</div>
 
+    <div class="auth-box">
+      <div class="auth-title">🔐 노션 추가 인증</div>
+      <div class="row">
+        <input id="adminToken" type="password" placeholder="관리자 토큰을 입력하세요" autocomplete="off" />
+        <button id="saveToken" type="button">인증 저장</button>
+        <button id="clearToken" type="button" class="secondary-btn">인증 삭제</button>
+      </div>
+      <label class="remember">
+        <input id="rememberToken" type="checkbox" checked />
+        이 기기에서 기억하기 (개인 기기에서만 사용)
+      </label>
+      <div id="authStatus" class="small auth-status" aria-live="polite"></div>
+    </div>
+
     <div id="list"></div>
   </div>
 
@@ -50,25 +76,119 @@
     const listEl = document.getElementById("list");
     const qEl = document.getElementById("q");
     const searchBtn = document.getElementById("search");
+    const adminTokenEl = document.getElementById("adminToken");
+    const rememberTokenEl = document.getElementById("rememberToken");
+    const saveTokenBtn = document.getElementById("saveToken");
+    const clearTokenBtn = document.getElementById("clearToken");
+    const authStatusEl = document.getElementById("authStatus");
+    let volatileAdminToken = "";
   
     function showHint(msg) { listEl.innerHTML = `<div class="hint">${msg}</div>`; }
     function showError(msg) { listEl.innerHTML = `<div class="err">${msg}</div>`; }
-    function getAdminToken() {
-      let token = sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
+    function showAuthStatus(message, type = "") {
+      authStatusEl.textContent = message;
+      authStatusEl.className = `small auth-status ${type}`.trim();
+    }
 
+    function readStoredToken(storage) {
+      try {
+        return storage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+      } catch {
+        return "";
+      }
+    }
+
+    function removeStoredToken(storage) {
+      try {
+        storage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+      } catch {
+        // Notion 임베드의 저장소 접근 제한 시 무시
+      }
+    }
+
+    function saveAdminToken() {
+      const token = adminTokenEl.value.trim();
       if (!token) {
-        token = prompt("관리자 토큰을 입력하세요.");
-        token = token?.trim();
-        if (token) {
-          sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+        showAuthStatus("관리자 토큰을 입력해 주세요.", "error");
+        adminTokenEl.focus();
+        return "";
+      }
+
+      volatileAdminToken = token;
+
+      if (rememberTokenEl.checked) {
+        try {
+          localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+          removeStoredToken(sessionStorage);
+          showAuthStatus("이 기기에 인증 정보를 저장했습니다.", "ok");
+          return token;
+        } catch {
+          // 임베드 브라우저가 영구 저장을 차단하면 세션 저장으로 대체
         }
+      }
+
+      try {
+        sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+        removeStoredToken(localStorage);
+        showAuthStatus(
+          rememberTokenEl.checked
+            ? "브라우저 정책상 현재 세션에서만 인증을 유지합니다."
+            : "현재 세션에서만 인증을 유지합니다.",
+          rememberTokenEl.checked ? "error" : "ok"
+        );
+      } catch {
+        showAuthStatus("브라우저 저장소를 사용할 수 없어 이 화면에서만 인증을 유지합니다.", "error");
       }
 
       return token;
     }
 
-    function forgetAdminToken() {
-      sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+    function getAdminToken() {
+      const inputToken = adminTokenEl.value.trim();
+      if (inputToken) return saveAdminToken();
+
+      const token = readStoredToken(localStorage) || readStoredToken(sessionStorage) || volatileAdminToken;
+      if (token) return token;
+
+      showAuthStatus("관리자 토큰을 입력하고 인증 저장을 눌러주세요.", "error");
+      adminTokenEl.focus();
+      return "";
+    }
+
+    function forgetAdminToken(message = "저장된 인증 정보를 삭제했습니다.") {
+      removeStoredToken(localStorage);
+      removeStoredToken(sessionStorage);
+      volatileAdminToken = "";
+      adminTokenEl.value = "";
+      showAuthStatus(message, message.includes("올바르지") ? "error" : "");
+    }
+
+    function restoreAdminToken() {
+      const localToken = readStoredToken(localStorage);
+      const sessionToken = readStoredToken(sessionStorage);
+      const token = localToken || sessionToken;
+
+      if (token) {
+        adminTokenEl.value = token;
+        rememberTokenEl.checked = Boolean(localToken);
+        volatileAdminToken = token;
+        showAuthStatus(
+          localToken ? "이 기기에 저장된 인증 정보를 사용합니다." : "현재 세션의 인증 정보를 사용합니다.",
+          "ok"
+        );
+      } else {
+        showAuthStatus("처음 한 번만 토큰을 입력하면 이 기기에서 기억할 수 있습니다.");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char]);
     }
   
     // YYYYMMDD -> YYYY.MM.DD
@@ -106,38 +226,42 @@
             item.poster = item.poster.replace(/^http:\/\//i, "https://");
           }
 
+          const posterUrl = item.poster?.startsWith("https://")
+            ? item.poster
+            : "https://via.placeholder.com/100x140?text=No+Poster";
+
           const card = document.createElement("div");
           card.className = "card";
           
           card.innerHTML = `
-            <img src="${item.poster || 'https://via.placeholder.com/100x140?text=No+Poster'}" alt="포스터">
+            <img src="${escapeHtml(posterUrl)}" alt="포스터">
             <div class="info">
               <div>
-                <div class="title">${item.title}</div>
-                <div class="meta">🎬 <b>감독:</b> ${item.director || "미상"}</div>
-                <div class="meta">🎭 <b>출연:</b> ${item.actors || "미상"}</div>
-                <div class="meta">📅 <b>개봉:</b> ${formatDateStr(item.releaseDate)} | 🏷️ <b>장르:</b> ${item.genre || "미상"}</div>
+                <div class="title">${escapeHtml(item.title)}</div>
+                <div class="meta">🎬 <b>감독:</b> ${escapeHtml(item.director || "미상")}</div>
+                <div class="meta">🎭 <b>출연:</b> ${escapeHtml(item.actors || "미상")}</div>
+                <div class="meta">📅 <b>개봉:</b> ${escapeHtml(formatDateStr(item.releaseDate))} | 🏷️ <b>장르:</b> ${escapeHtml(item.genre || "미상")}</div>
               </div>
               <div class="actions">
                 <button class="add-btn">노션에 추가</button>
+                <div class="card-status" aria-live="polite"></div>
               </div>
             </div>
           `;
   
           const btn = card.querySelector(".add-btn");
+          const cardStatus = card.querySelector(".card-status");
           btn.onclick = async () => {
             btn.disabled = true;
             btn.textContent = "추가 중...";
+            cardStatus.textContent = "";
   
             try {
               const token = getAdminToken();
 
               if (!token) {
-
                 throw new Error("관리자 토큰이 필요합니다.");
-
               }
-
 
               const rr = await fetch(`${WORKER_BASE}/add`, {
                 method: "POST",
@@ -150,10 +274,11 @@
                 btn.style.backgroundColor = "#dcfce7";
                 btn.style.color = "#166534";
                 btn.style.borderColor = "#bbf7d0";
+                showAuthStatus("인증된 상태입니다. 다음부터 토큰을 다시 묻지 않습니다.", "ok");
               } else {
                 const errorText = await rr.text();
                 if (rr.status === 401) {
-                  forgetAdminToken();
+                  forgetAdminToken("토큰이 올바르지 않습니다. 다시 입력해 주세요.");
                   throw new Error("관리자 토큰이 올바르지 않습니다. 다시 눌러 토큰을 재입력해 주세요.");
                 }
                 if (rr.status === 503) {
@@ -164,8 +289,8 @@
             } catch (e) {
               btn.disabled = false;
               btn.textContent = "다시 시도";
+              cardStatus.textContent = e.message;
               console.error(e);
-              alert(`노션 추가에 실패했습니다.\n\n${e.message}`);
             }
           };
   
@@ -181,6 +306,10 @@
   
     searchBtn.addEventListener("click", search);
     qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+    saveTokenBtn.addEventListener("click", saveAdminToken);
+    clearTokenBtn.addEventListener("click", () => forgetAdminToken());
+    adminTokenEl.addEventListener("keydown", (e) => { if (e.key === "Enter") saveAdminToken(); });
+    restoreAdminToken();
     showHint("영화명, 감독명, 배우명 중 하나를 입력하고 검색을 눌러주세요.");
   </script>
 </body>
