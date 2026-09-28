@@ -71,7 +71,8 @@
   <script>
     // 본인의 새로운 영화용 Cloudflare Worker 주소로 변경해주세요. (끝에 /는 빼주세요)
     const WORKER_BASE = "https://notion-movie-automation-new.codud9028.workers.dev";
-    const ADMIN_TOKEN_STORAGE_KEY = "MOVIE_ADMIN_TOKEN";
+    const ADMIN_TOKEN_STORAGE_KEY = "NOTION_ADMIN_TOKEN";
+    const LEGACY_ADMIN_TOKEN_STORAGE_KEY = "MOVIE_ADMIN_TOKEN";
   
     const listEl = document.getElementById("list");
     const qEl = document.getElementById("q");
@@ -92,7 +93,14 @@
 
     function readStoredToken(storage) {
       try {
-        return storage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+        const current = storage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+        if (current) return current;
+        const legacy = storage.getItem(LEGACY_ADMIN_TOKEN_STORAGE_KEY) || "";
+        if (legacy) {
+          storage.setItem(ADMIN_TOKEN_STORAGE_KEY, legacy);
+          storage.removeItem(LEGACY_ADMIN_TOKEN_STORAGE_KEY);
+        }
+        return legacy;
       } catch {
         return "";
       }
@@ -101,6 +109,7 @@
     function removeStoredToken(storage) {
       try {
         storage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+        storage.removeItem(LEGACY_ADMIN_TOKEN_STORAGE_KEY);
       } catch {
         // Notion 임베드의 저장소 접근 제한 시 무시
       }

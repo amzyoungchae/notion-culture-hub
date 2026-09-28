@@ -23,7 +23,7 @@
   <script src="../shared/admin-auth.js"></script>
   <script>
     const WORKER_URL = "https://notion-book-automation-new.codud9028.workers.dev";
-    const auth = createAdminAuth({ mountId: "auth", storageKey: "BOOK_ADMIN_TOKEN" });
+    const auth = createAdminAuth({ mountId: "auth", storageKey: "NOTION_ADMIN_TOKEN", legacyKeys: ["BOOK_ADMIN_TOKEN"] });
     const queryInput = document.getElementById("query");
     const searchBtn = document.getElementById("searchBtn");
     const results = document.getElementById("results");

@@ -29,7 +29,7 @@
   <script src="../shared/admin-auth.js"></script>
   <script>
     const WORKER_URL = "https://notion-performance-automation-new.codud9028.workers.dev";
-    const auth = createAdminAuth({ mountId: "auth", storageKey: "PERFORMANCE_ADMIN_TOKEN" });
+    const auth = createAdminAuth({ mountId: "auth", storageKey: "NOTION_ADMIN_TOKEN", legacyKeys: ["PERFORMANCE_ADMIN_TOKEN"] });
     const queryInput = document.getElementById("query");
     const startDate = document.getElementById("startDate");
     const endDate = document.getElementById("endDate");

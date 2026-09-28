@@ -3,6 +3,7 @@
     const mount = document.getElementById(options.mountId);
     const storageKey = options.storageKey;
     const sessionKey = storageKey + "_SESSION";
+    const legacyKeys = options.legacyKeys || [];
 
     mount.innerHTML = `
       <div class="auth-box">
@@ -28,6 +29,29 @@
       try { storage.removeItem(key); } catch (_) { /* Storage may be blocked in an embed. */ }
     }
 
+    function readWithMigration(storage, key, oldKeys) {
+      const current = read(storage, key);
+      if (current) return current;
+      for (const oldKey of oldKeys) {
+        const legacy = read(storage, oldKey);
+        if (!legacy) continue;
+        try { storage.setItem(key, legacy); } catch (_) { /* Use the value even if migration is blocked. */ }
+        remove(storage, oldKey);
+        return legacy;
+      }
+      return "";
+    }
+
+    function removeAll() {
+      remove(localStorage, storageKey);
+      remove(sessionStorage, sessionKey);
+      legacyKeys.forEach(key => {
+        remove(localStorage, key);
+        remove(sessionStorage, key);
+        remove(sessionStorage, key + "_SESSION");
+      });
+    }
+
     function showStatus(message, isError) {
       status.textContent = message || "";
       status.classList.toggle("error", Boolean(isError));
@@ -40,8 +64,7 @@
         return false;
       }
 
-      remove(localStorage, storageKey);
-      remove(sessionStorage, sessionKey);
+      removeAll();
       try {
         (remember.checked ? localStorage : sessionStorage).setItem(remember.checked ? storageKey : sessionKey, token);
         showStatus(remember.checked ? "이 기기에 인증 정보를 저장했습니다." : "현재 탭에만 인증 정보를 저장했습니다.");
@@ -59,14 +82,13 @@
     }
 
     function forget(message) {
-      remove(localStorage, storageKey);
-      remove(sessionStorage, sessionKey);
+      removeAll();
       input.value = "";
       showStatus(message || "저장된 인증 정보를 삭제했습니다.", Boolean(message));
     }
 
-    const persisted = read(localStorage, storageKey);
-    const temporary = read(sessionStorage, sessionKey);
+    const persisted = readWithMigration(localStorage, storageKey, legacyKeys);
+    const temporary = readWithMigration(sessionStorage, sessionKey, legacyKeys.flatMap(key => [key + "_SESSION", key]));
     input.value = persisted || temporary;
     remember.checked = Boolean(persisted) || !temporary;
     if (input.value) showStatus(persisted ? "이 기기에 저장된 인증 정보를 사용합니다." : "현재 탭의 인증 정보를 사용합니다.");
