@@ -1,0 +1,141 @@
+:root {
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-border: #c7d2fe;
+  color: #252525;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: #f5f5f3;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 28px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .07);
+}
+
+h3 { margin: 0 0 22px; font-size: 25px; }
+.row, .date-row, .auth-row { display: flex; gap: 10px; }
+.row input { flex: 1; }
+.date-row { align-items: center; margin-top: 10px; color: #64748b; }
+.date-row input { flex: 1; }
+
+input {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+}
+
+input:focus {
+  outline: 3px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #292929;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover { filter: brightness(.94); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.secondary { border: 1px solid #cbd5e1; background: #fff; color: #475569; }
+
+.hint { margin: 11px 2px 0; color: #6b7280; font-size: 14px; }
+.err { min-height: 22px; margin-top: 12px; color: #b91c1c; font-size: 14px; }
+
+.auth-box {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #dce2ea;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.auth-title { margin-bottom: 12px; font-size: 18px; font-weight: 800; color: #334155; }
+.auth-row input { flex: 1; }
+.remember { display: flex; align-items: center; gap: 8px; margin-top: 11px; color: #475569; font-size: 14px; }
+.remember input { width: 16px; height: 16px; padding: 0; accent-color: var(--accent); }
+.auth-status { min-height: 20px; margin-top: 9px; color: #15803d; font-size: 14px; }
+.auth-status.error { color: #b91c1c; }
+
+#results { margin-top: 22px; }
+.card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.media-wrap {
+  position: relative;
+  display: grid;
+  flex: 0 0 104px;
+  width: 104px;
+  height: 146px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(145deg, var(--accent-soft), #f3f4f6);
+  color: var(--accent);
+  font-size: 36px;
+}
+
+.media-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.info { flex: 1; min-width: 0; }
+.title { margin: 3px 0 9px; font-size: 20px; font-weight: 800; line-height: 1.3; }
+.meta { margin-top: 6px; color: #5b5b5b; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.actions { display: flex; align-items: flex-end; align-self: stretch; }
+.add-btn { border: 1px solid var(--accent-border); background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.card-status { min-height: 18px; margin-top: 8px; color: #15803d; font-size: 13px; text-align: right; }
+.card-status.error { color: #b91c1c; }
+.detail-note { margin-top: 7px; color: #7c3aed; font-size: 13px; }
+
+@media (max-width: 640px) {
+  body { padding: 10px; }
+  .container { padding: 20px 16px; }
+  h3 { font-size: 21px; }
+  .row, .date-row, .auth-row { flex-wrap: wrap; }
+  .row input, .auth-row input { flex-basis: 100%; }
+  .date-row span { display: none; }
+  .date-row input { flex-basis: calc(50% - 5px); }
+  .auth-row button { flex: 1; }
+  .card { gap: 13px; padding: 14px; flex-wrap: wrap; }
+  .media-wrap { flex-basis: 92px; width: 92px; height: 130px; }
+  .actions { width: 100%; }
+  .add-btn { width: 100%; }
+  .card-status { text-align: left; }
+}
