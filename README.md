@@ -29,6 +29,7 @@ Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 �
 | 도서 DB 자동 입력 | 도서관 정보나루 API로 책 정보를 검색하고 Notion 도서 DB에 저장 | [Book README](./workers/book-automation/README.md) |
 | 공연 DB 자동 입력 | KOPIS API로 공연 정보를 검색하고 Notion 공연 DB에 저장 | [Performance README](./workers/performance-automation/README.md) |
 | 전시 DB 자동 입력 | 한눈에보는문화정보조회서비스 API로 전시 정보를 검색하고 Notion 전시 DB에 저장 | [Exhibition README](./workers/exhibition-automation/README.md) |
+| 도서 하이라이트 캡처 | 사진에서 문장을 추출해 기존 책과 연결하고 Notion에 저장 | [Highlight Capture README](./apps/highlight-capture/README.md) |
 
 
 ## 주요 기능
@@ -63,6 +64,10 @@ notion-culture-hub/
 │  │  └─ style.css
 │  ├─ book-search/
 │  │  └─ index.html
+│  ├─ highlight-capture/
+│  │  ├─ index.html
+│  │  ├─ app.js
+│  │  └─ style.css
 │  ├─ movie-search/
 │  │  └─ index.html
 │  ├─ exhibition-search/

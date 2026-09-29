@@ -16,12 +16,19 @@
 - 검색 결과에서 선택한 도서를 Notion 데이터베이스에 추가
 - Notion 페이지에 제목, 저자, 출판사, KDC, 책 표지, 주제분야, 줄거리, 키워드 등 저장
 - ISBN 입력 시 ISBN 기반 검색 요청 처리
+- 촬영한 책 문장을 Workers AI로 추출
+- 추출한 문장과 원본 사진을 기존 책에 연결해 하이라이트 데이터베이스에 저장
 
 ## 관련 경로
 
 ```text
 apps/book-search/
 └─ index.html
+
+apps/highlight-capture/
+├─ index.html
+├─ app.js
+└─ style.css
 
 workers/book-automation/
 ├─ src/
@@ -65,6 +72,9 @@ Cloudflare Worker에서 도서 검색과 Notion 저장을 처리합니다.
 ```text
 GET /search
 POST /add
+GET /highlights/books
+POST /highlights/ocr
+POST /highlights
 ```
 
 ## API
@@ -119,6 +129,14 @@ ISBN 검색 예시:
 }
 ```
 
+### 하이라이트 API
+
+- `GET /highlights/books?q=검색어`: Notion 도서 DB에서 연결할 책을 검색합니다.
+- `POST /highlights/ocr`: `multipart/form-data`의 `image`를 Workers AI 비전 모델로 읽습니다.
+- `POST /highlights`: 문장, 책 관계, 페이지, 태그, 메모와 원본 사진을 Highlights DB에 저장합니다.
+
+세 엔드포인트 모두 `X-Admin-Token` 헤더가 필요합니다. 자세한 요청 형식과 Notion 속성 구성은 [도서 하이라이트 캡처 문서](../../apps/highlight-capture/README.md)를 참고하세요.
+
 ## Notion 저장 항목
 
 Worker는 도서 정보를 Notion 도서 데이터베이스에 저장합니다.
@@ -144,6 +162,7 @@ Cloudflare Worker의 Variables and Secrets에 아래 값을 등록해야 합니�
 DATA4LIB_KEY=
 NOTION_TOKEN=
 NOTION_DB_ID=
+HIGHLIGHTS_DB_ID=
 ADMIN_TOKEN=
 ```
 
@@ -152,7 +171,10 @@ ADMIN_TOKEN=
 | `DATA4LIB_KEY` | 도서 API Key |
 | `NOTION_TOKEN` | Notion Integration Token |
 | `NOTION_DB_ID` | 도서 정보를 저장할 Notion 데이터베이스 ID |
+| `HIGHLIGHTS_DB_ID` | 도서 하이라이트를 저장할 Notion 데이터베이스 ID |
 | `ADMIN_TOKEN` | Notion 데이터베이스에 항목을 추가할 때 사용하는 관리자 인증 토큰 |
+
+`NOTION_DB_ID`와 `HIGHLIGHTS_DB_ID`는 현재 `wrangler.toml`의 일반 변수로 관리하며, `DATA4LIB_KEY`, `NOTION_TOKEN`, `ADMIN_TOKEN`은 Worker Secret으로 등록합니다. OCR에는 `wrangler.toml`의 `AI` 바인딩을 사용합니다.
 
 실제 값은 GitHub에 커밋하지 않습니다.
 

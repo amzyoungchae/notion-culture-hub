@@ -2,3 +2,10 @@ name = "notion-book-automation-new"
 main = "src/index.js"
 compatibility_date = "2026-04-30"
 workers_dev = true
+
+[vars]
+NOTION_DB_ID = "304db01603cb80b78f86f40d77e58265"
+HIGHLIGHTS_DB_ID = "3e9db01603cb806b8225fdba86fdaeb4"
+
+[ai]
+binding = "AI"

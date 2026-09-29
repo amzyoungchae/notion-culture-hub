@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>도서 하이라이트 캡처</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">NOTION BOOKS</p>
+        <h1>하이라이트 캡처</h1>
+      </div>
+      <span class="privacy-mark" title="AI OCR" aria-label="AI OCR"><i data-lucide="scan-text"></i></span>
+    </header>
+
+    <div id="auth"></div>
+
+    <section class="capture-section" aria-labelledby="captureTitle">
+      <div class="section-heading">
+        <span class="step">1</span>
+        <div>
+          <h2 id="captureTitle">문장 촬영</h2>
+        </div>
+      </div>
+
+      <div class="capture-actions">
+        <label class="primary action-label" for="cameraInput">
+          <i data-lucide="camera"></i>
+          사진 촬영
+        </label>
+        <label class="secondary action-label" for="galleryInput">
+          <i data-lucide="image-plus"></i>
+          앨범에서 선택
+        </label>
+        <input id="cameraInput" class="visually-hidden" type="file" accept="image/*" capture="environment" />
+        <input id="galleryInput" class="visually-hidden" type="file" accept="image/*" />
+      </div>
+
+      <div id="imageEditor" class="image-editor" hidden>
+        <div class="image-stage"><img id="sourceImage" alt="OCR로 읽을 책 사진" /></div>
+        <div class="image-tools" aria-label="사진 편집">
+          <button id="rotateLeft" class="icon-button" type="button" title="왼쪽으로 회전" aria-label="왼쪽으로 회전"><i data-lucide="rotate-ccw"></i></button>
+          <button id="rotateRight" class="icon-button" type="button" title="오른쪽으로 회전" aria-label="오른쪽으로 회전"><i data-lucide="rotate-cw"></i></button>
+          <button id="resetCrop" class="icon-button" type="button" title="편집 초기화" aria-label="편집 초기화"><i data-lucide="scan"></i></button>
+          <button id="runOcr" class="primary ocr-button" type="button"><i data-lucide="text-scan"></i> 문장 추출</button>
+        </div>
+      </div>
+
+      <div id="ocrProgress" class="progress-wrap" hidden>
+        <div class="progress-label"><span id="ocrStatus">OCR 준비 중</span><span id="ocrPercent">0%</span></div>
+        <progress id="ocrProgressBar" value="0" max="1"></progress>
+      </div>
+    </section>
+
+    <section class="form-section" aria-labelledby="editTitle">
+      <div class="section-heading">
+        <span class="step">2</span>
+        <div>
+          <h2 id="editTitle">문장 확인</h2>
+        </div>
+      </div>
+      <label class="field-label" for="highlightText">하이라이트 문장</label>
+      <textarea id="highlightText" rows="6" maxlength="2000" placeholder="사진을 촬영해 문장을 추출하거나 직접 입력하세요."></textarea>
+      <div class="char-count"><span id="charCount">0</span>/2000</div>
+    </section>
+
+    <section class="form-section" aria-labelledby="bookTitle">
+      <div class="section-heading">
+        <span class="step">3</span>
+        <div>
+          <h2 id="bookTitle">책과 함께 저장</h2>
+        </div>
+      </div>
+
+      <label class="field-label" for="bookSearch">책 검색</label>
+      <div class="search-wrap">
+        <i data-lucide="search"></i>
+        <input id="bookSearch" type="search" autocomplete="off" placeholder="책 제목 검색" />
+        <span id="bookSpinner" class="spinner" hidden aria-label="책 검색 중"></span>
+      </div>
+      <div id="bookResults" class="book-results" role="listbox" hidden></div>
+      <div id="selectedBook" class="selected-book" hidden>
+        <i data-lucide="book-check"></i>
+        <span></span>
+        <button id="clearBook" class="icon-button" type="button" title="책 선택 해제" aria-label="책 선택 해제"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="field-grid">
+        <div>
+          <label class="field-label" for="pageNumber">페이지</label>
+          <input id="pageNumber" type="number" min="1" step="1" inputmode="numeric" placeholder="예: 128" />
+        </div>
+        <div>
+          <label class="field-label" for="tags">태그</label>
+          <input id="tags" type="text" placeholder="문장, 아이디어" />
+        </div>
+      </div>
+
+      <label class="field-label" for="memo">메모</label>
+      <textarea id="memo" rows="3" maxlength="2000" placeholder="이 문장을 남긴 이유나 떠오른 생각"></textarea>
+    </section>
+
+    <div id="message" class="message" aria-live="polite"></div>
+    <button id="saveHighlight" class="save-button" type="button">
+      <i data-lucide="send"></i>
+      Notion에 저장
+    </button>
+    <a id="openNotion" class="notion-link" href="#" target="_blank" rel="noopener" hidden>
+      저장된 하이라이트 열기 <i data-lucide="external-link"></i>
+    </a>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+  <script src="../shared/admin-auth.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
