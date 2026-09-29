@@ -265,14 +265,14 @@ async function handle(req, env) {
     }
 
     // -----------------------
-    // 3) 검색: /search?keyword=...  또는  /search?isbn13=...
+    // 3) 검색: 일반 검색어는 제목과 저자를 함께 조회하고, ISBN은 정확히 조회한다.
     // -----------------------
     if (url.pathname === "/search") {
       // 1) isbn13 파라미터 우선
       let isbn13 = (url.searchParams.get("isbn13") ?? "");
       isbn13 = isbn13.replace(/\+/g, "").replace(/[\s-]+/g, "").trim();
 
-      // 2) keyword(제목) 파라미터
+      // 2) keyword(제목 또는 저자) 파라미터
       let keyword = (url.searchParams.get("keyword") ?? "");
       keyword = keyword.replace(/\+/g, " ").replace(/[\s\u00A0\u2009\u202F]+/g, " ").trim();
 
@@ -290,24 +290,27 @@ async function handle(req, env) {
       }
 
       const base = `https://data4library.kr/api/srchBooks?authKey=${DATA4LIB_KEY}&pageNo=1&pageSize=10`;
-      const apiUrl = isbn13
-        ? `${base}&isbn13=${encodeURIComponent(isbn13)}`
-        : `${base}&title=${encodeURIComponent(keyword)}`;
+      const fetchDocs = async (field, value) => {
+        const response = await fetch(`${base}&${field}=${encodeURIComponent(value)}`);
+        if (!response.ok) throw new Error(`도서 검색 API 오류 (${response.status})`);
+        const xml = await response.text();
+        return xml.match(/<doc>[\s\S]*?<\/doc>/g) || [];
+      };
 
-      let usedKeyword = isbn13 ? `isbn13:${isbn13}` : keyword;
+      const fetchWithSpaceFallback = async (field, value) => {
+        const docs = await fetchDocs(field, value);
+        if (docs.length || !/\s/.test(value)) return docs;
+        return fetchDocs(field, value.replace(/\s/g, ""));
+      };
 
-      let xml = await (await fetch(apiUrl)).text();
-      let docBlocks = xml.match(/<doc>[\s\S]*?<\/doc>/g) || [];
+      const docBlocks = isbn13
+        ? await fetchDocs("isbn13", isbn13)
+        : (await Promise.all([
+            fetchWithSpaceFallback("title", keyword),
+            fetchWithSpaceFallback("author", keyword),
+          ])).flat();
 
-      // title 검색인데 결과 0이고 공백 있으면 공백 제거로 fallback (isbn13 제외)
-      if (!isbn13 && docBlocks.length === 0 && /\s/.test(keyword)) {
-        const noSpace = keyword.replace(/\s/g, "");
-        usedKeyword = noSpace;
-        xml = await (await fetch(`${base}&title=${encodeURIComponent(noSpace)}`)).text();
-        docBlocks = xml.match(/<doc>[\s\S]*?<\/doc>/g) || [];
-      }
-
-      const items = docBlocks.map((blk) => {
+      const parsedItems = docBlocks.map((blk, sourceIndex) => {
         const bookBlk = blk.match(/<book>[\s\S]*?<\/book>/)?.[0] || blk;
 
         const title = pick(bookBlk, "bookname") || pick(bookBlk, "bookName") || pick(bookBlk, "title");
@@ -320,10 +323,41 @@ async function handle(req, env) {
         coverUrl = coverUrl.trim();
         if (coverUrl.startsWith("http://")) coverUrl = coverUrl.replace(/^http:\/\//, "https://");
 
-        return { title, author, publisher, kdc, isbn13: isbn13Out, coverUrl };
+        return { title, author, publisher, kdc, isbn13: isbn13Out, coverUrl, sourceIndex };
       });
 
-      return new Response(JSON.stringify({ items, usedKeyword }), {
+      const normalizeForMatch = (value) => String(value || "")
+        .toLocaleLowerCase("ko")
+        .replace(/[\s\p{P}\p{S}]+/gu, "");
+      const normalizedKeyword = normalizeForMatch(keyword);
+      const relevance = (book) => {
+        if (isbn13) return 0;
+        const title = normalizeForMatch(book.title);
+        const author = normalizeForMatch(book.author);
+        if (title === normalizedKeyword || author === normalizedKeyword) return 400;
+        if (title.startsWith(normalizedKeyword) || author.startsWith(normalizedKeyword)) return 300;
+        if (title.includes(normalizedKeyword) || author.includes(normalizedKeyword)) return 200;
+        return 0;
+      };
+
+      const seen = new Set();
+      const items = parsedItems
+        .filter((book) => {
+          const isbnKey = String(book.isbn13 || "").replace(/[\s-]/g, "");
+          const fallbackKey = [book.title, book.author, book.publisher].map(normalizeForMatch).join("|");
+          const key = isbnKey ? `isbn:${isbnKey}` : `book:${fallbackKey}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .sort((a, b) => relevance(b) - relevance(a) || a.sourceIndex - b.sourceIndex)
+        .map(({ sourceIndex, ...book }) => book);
+
+      return new Response(JSON.stringify({
+        items,
+        usedKeyword: isbn13 ? `isbn13:${isbn13}` : keyword,
+        searchedFields: isbn13 ? ["isbn13"] : ["title", "author"],
+      }), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
