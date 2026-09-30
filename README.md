@@ -11,10 +11,11 @@
 
 Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 한 곳에서 관리하기 위한 개인용 문화생활 허브입니다.
 
-이 프로젝트는 두 가지 흐름을 함께 다룹니다.
+이 프로젝트는 세 가지 흐름을 함께 다룹니다.
 
 1. 외부 API에서 영화, 도서, 공연, 전시 정보를 검색하고 Notion 데이터베이스에 저장합니다.
 2. 여러 Notion 데이터베이스의 기록을 통합해서 하나의 캘린더에서 확인합니다.
+3. 실물 책의 문장을 촬영해 AI OCR로 추출하고, 기존 도서와 연결된 하이라이트로 저장합니다.
 
 프론트엔드는 정적 HTML/CSS/JavaScript로 구성되어 Netlify에 배포하고, API와 Notion 저장 로직은 Cloudflare Workers에서 실행합니다.
 
@@ -53,6 +54,16 @@ Notion에 흩어져 있는 영화, 도서, 공연, 전시, 방탈출 기록을 �
 
 ![DB 자동입력 데모](/assets/2.%20movie_db_save.gif)
 
+### 도서 하이라이트 캡처
+
+- 휴대폰 카메라로 실물 책의 문장을 촬영하거나 앨범에서 이미지 선택
+- 원하는 문장 영역 자르기 및 회전 지원
+- Cloudflare Workers AI 비전 모델을 이용한 한국어·영어 문장 추출
+- OCR 결과를 저장하기 전에 직접 확인하고 수정
+- 기존 Notion 도서 DB에서 책을 검색해 하이라이트와 관계형으로 연결
+- 페이지, 태그, 메모, 원본 사진을 Notion 하이라이트 DB에 함께 저장
+- 조회, OCR, 저장 요청을 관리자 토큰 인증으로 보호
+
 ## 프로젝트 구조
 
 ```text
@@ -67,13 +78,17 @@ notion-culture-hub/
 │  ├─ highlight-capture/
 │  │  ├─ index.html
 │  │  ├─ app.js
-│  │  └─ style.css
+│  │  ├─ style.css
+│  │  └─ README.md
 │  ├─ movie-search/
 │  │  └─ index.html
 │  ├─ exhibition-search/
 │  │  └─ index.html
-│  └─ performance-search/
-│     └─ index.html
+│  ├─ performance-search/
+│  │  └─ index.html
+│  └─ shared/
+│     ├─ admin-auth.js
+│     └─ search-app.css
 │
 ├─ workers/
 │  ├─ calendar-api/
@@ -111,8 +126,8 @@ notion-culture-hub/
 
 ## 보안
 
-`POST /add` API는 관리자 토큰 인증이 필요합니다.
+`POST /add`와 도서 하이라이트 조회, OCR, 저장 API는 관리자 토큰 인증이 필요합니다.
 
-Cloudflare Worker Secret에 `ADMIN_TOKEN`을 등록하고, 프론트엔드는 `노션에 추가` 요청 시 `X-Admin-Token` 헤더로 토큰을 전송합니다.
+Cloudflare Worker Secret에 `ADMIN_TOKEN`을 등록하고, 프론트엔드는 보호된 요청에 `X-Admin-Token` 헤더로 토큰을 전송합니다.
 
-토큰이 없거나 일치하지 않으면 Worker는 `401 Unauthorized`를 반환하며 Notion 데이터베이스에 항목을 추가하지 않습니다.
+토큰이 없거나 일치하지 않으면 Worker는 `401 Unauthorized`를 반환하며 보호된 조회, OCR, 저장 작업을 실행하지 않습니다.
